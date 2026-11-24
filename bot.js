@@ -29,8 +29,16 @@ bot.start(async (ctx) => {
       ]));
   }
 
-  getOrCreateUser(userId, ctx.from.username, ctx.from.first_name, payload, async (err, { user }) => {
+  getOrCreateUser(userId, ctx.from.username, ctx.from.first_name, payload, async (err, { user, isNew, invitedBy }) => {
     if (err) return ctx.reply("خطا در ثبت‌نام");
+    
+    // اگه کاربر جدید بود و با دعوت اومده بود، به دعوت‌کننده پیام بده
+    if (isNew && invitedBy) {
+      try {
+        await bot.telegram.sendMessage(invitedBy, "🎉 یکی از دوستانت با لینک تو وارد شد!\nیک شانس به شانس‌هات اضافه شد.");
+      } catch (e) {}
+    }
+
     const inviteLink = `https://t.me/${ctx.botInfo.username}?start=${user.invite_code}`;
     const buttons = [];
     if (user.spins_available > 0) {
@@ -60,6 +68,19 @@ bot.action("refresh", async (ctx) => {
         user.spins_available > 0 ? [Markup.button.webApp("🎡 چرخوندن گردونه", `${WEBAPP_URL}/?uid=${ctx.from.id}`)] : [],
         [Markup.button.callback("🔄 بروزرسانی", "refresh")]
       ].filter(r => r.length)));
+  });
+});
+
+// ============ دستور مخفی ادمین ============
+bot.command("giveme", async (ctx) => {
+  if (ctx.from.id !== ADMIN_ID) return;
+  const args = ctx.message.text.split(" ");
+  const amount = parseInt(args[1]) || 1;
+  db.run("UPDATE users SET spins_available = spins_available + ? WHERE telegram_id = ?", [amount, ctx.from.id], (err) => {
+    if (err) return ctx.reply("خطا");
+    db.get("SELECT spins_available FROM users WHERE telegram_id = ?", [ctx.from.id], (err, row) => {
+      ctx.reply(`✅ ${amount} شانس اضافه شد!\n🎟 کل شانس‌ها: ${row.spins_available}`);
+    });
   });
 });
 
