@@ -88,16 +88,48 @@ function generateInviteCode() {
 
 function getOrCreateUser(telegramId, username, firstName, invitedByCode, callback) {
   db.get("SELECT * FROM users WHERE telegram_id = ?", [telegramId], (err, user) => {
-    if (user) return callback(null, { user, isNew: false });
+    if (user) {
+      // کاربر از قبل هست، فقط بروزرسانی نام
+      db.run("UPDATE users SET username = ?, first_name = ? WHERE telegram_id = ?", [username, firstName, telegramId]);
+      return callback(null, { user, isNew: false });
+    }
 
-    const inviteCode = generateInviteCode();
-    db.run(`INSERT INTO users (telegram_id, username, first_name, invite_code) VALUES (?, ?, ?, ?)`,
-      [telegramId, username, firstName, inviteCode], (err) => {
-        if (err) return callback(err);
-        db.get("SELECT * FROM users WHERE telegram_id = ?", [telegramId], (err, newUser) => {
-          callback(err, { user: newUser, isNew: true });
+    // کاربر جدیده
+    let inviterId = null;
+    const proceed = (code) => {
+      if (invitedByCode) {
+        db.get("SELECT * FROM users WHERE invite_code = ?", [invitedByCode], (err, inviter) => {
+          if (inviter && inviter.telegram_id !== telegramId) {
+            inviterId = inviter.telegram_id;
+          }
+          insertUser(code, inviterId);
         });
-      });
+      } else {
+        insertUser(code, null);
+      }
+    };
+
+    const insertUser = (code, inviter) => {
+      db.run(`INSERT INTO users (telegram_id, username, first_name, invite_code, invited_by) VALUES (?, ?, ?, ?, ?)`,
+        [telegramId, username, firstName, code, inviter], (err) => {
+          if (err) return callback(err);
+          
+          if (inviter) {
+            db.run("UPDATE users SET spins_available = spins_available + 1, total_invites = total_invites + 1 WHERE telegram_id = ?", [inviter]);
+          }
+
+          db.get("SELECT * FROM users WHERE telegram_id = ?", [telegramId], (err, newUser) => {
+            callback(err, { user: newUser, isNew: true, invitedBy: inviter });
+          });
+        });
+    };
+
+    // چک کردن اینکه کد تکراری نباشه
+    const newCode = generateInviteCode();
+    db.get("SELECT 1 FROM users WHERE invite_code = ?", [newCode], (err, exists) => {
+      if (exists) return proceed(generateInviteCode()); // اگه تکراری بود دوباره بساز
+      proceed(newCode);
+    });
   });
 }
 
