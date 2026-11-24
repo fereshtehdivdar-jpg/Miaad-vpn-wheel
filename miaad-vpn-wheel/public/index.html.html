@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>گردونه شانس میعاد VPN</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="loading" class="screen active">
+  <div class="spinner"></div>
+  <p>در حال بارگذاری...</p>
+</div>
+
+<div id="error" class="screen">
+  <div class="error-box">
+    <div class="error-icon">❌</div>
+    <h2 id="errorText">خطا</h2>
+    <p>لطفاً از ربات دوباره وارد شوید.</p>
+  </div>
+</div>
+
+<div id="wheel-screen" class="screen">
+  <h1>🎡 گردونه شانس</h1>
+  <p class="subtitle">میعاد VPN</p>
+  <div class="stats-bar">
+    <span>🎟 شانس: <b id="spinsAvailable">0</b></span>
+    <span>🎰 چرخش: <b id="spinsUsed">0</b>/10</span>
+  </div>
+  <div class="wheel-wrapper">
+    <div class="pointer"></div>
+    <canvas id="wheel" width="600" height="600"></canvas>
+    <button class="center-btn" id="spinBtn">بچرخون!</button>
+  </div>
+  <p id="statusText" class="status-text">دکمه وسط رو بزن</p>
+</div>
+
+<div id="result-screen" class="screen">
+  <h1 id="resultTitle">🎉 نتیجه</h1>
+  <div class="receipt" id="receipt">
+    <div class="receipt-emoji" id="receiptEmoji">🎊</div>
+    <div class="receipt-title" id="receiptTitle">—</div>
+    <div class="receipt-subtitle" id="receiptSubtitle"></div>
+    <div class="info-row" id="priceRow" style="display:none;">
+      <span>قیمت اصلی</span><span id="fullPrice">—</span>
+    </div>
+    <div class="info-row" id="discountRow" style="display:none;">
+      <span>قیمت با تخفیف</span><span id="discPrice">—</span>
+    </div>
+    <div class="info-row" id="codeRow" style="display:none;">
+      <span>کد تخفیف شما</span><span id="discCode" class="code-val">—</span>
+    </div>
+    <div class="info-row">
+      <span>تاریخ</span><span id="receiptTime">—</span>
+    </div>
+    <div class="note">📸 از این صفحه اسکرین‌شات بگیر و به ادمین بفرست</div>
+  </div>
+  <button class="btn" id="backBtn">بازگشت</button>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
