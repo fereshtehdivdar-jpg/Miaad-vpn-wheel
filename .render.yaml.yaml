@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: miaad-vpn-wheel
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    disk:
+      name: data
+      mountPath: /opt/render/project/src
+      sizeGB: 1
